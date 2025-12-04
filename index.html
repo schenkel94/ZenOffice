@@ -23,9 +23,13 @@
 
     <style>
         body { -webkit-tap-highlight-color: transparent; user-select: none; }
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(99, 102, 241, 0.5); border-radius: 20px; }
+        
+        /* Scrollbar personalizada mas funcional no canto */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background-color: rgba(99, 102, 241, 0.3); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background-color: rgba(99, 102, 241, 0.6); }
+
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fadeIn { animation: fadeIn 0.4s ease-out forwards; }
         @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
@@ -34,7 +38,7 @@
         .bar-grow { animation: slideUp 1s ease-out forwards; }
     </style>
 </head>
-<body class="bg-slate-900 text-gray-100 font-sans selection:bg-indigo-500 selection:text-white">
+<body class="bg-slate-900 text-gray-100 font-sans selection:bg-indigo-500 selection:text-white overflow-hidden">
     <div id="root"></div>
 
     <script type="text/babel">
@@ -67,32 +71,21 @@
 
         const { useState, useEffect, useRef, useContext, createContext } = React;
 
-        // --- Contexto Global (Gamification & Dados) ---
         const UserContext = createContext();
 
         const UserProvider = ({ children }) => {
-            // Estado para XP
             const [xp, setXp] = useState(() => parseInt(localStorage.getItem('zenXP') || '0'));
-            // Estado para Histórico Semanal { "YYYY-MM-DD": minutes }
             const [history, setHistory] = useState(() => JSON.parse(localStorage.getItem('zenHistory') || '{}'));
 
             useEffect(() => localStorage.setItem('zenXP', xp), [xp]);
             useEffect(() => localStorage.setItem('zenHistory', JSON.stringify(history)), [history]);
 
-            const level = Math.floor(xp / 500) + 1; // 500 XP por nível
-
+            const level = Math.floor(xp / 500) + 1;
             const addFocusTime = (minutes) => {
-                // 1. Add XP
-                const gainedXP = minutes * 4; // 25 min = 100 XP
+                const gainedXP = minutes * 4;
                 setXp(prev => prev + gainedXP);
-
-                // 2. Add to History
                 const today = new Date().toISOString().split('T')[0];
-                setHistory(prev => ({
-                    ...prev,
-                    [today]: (prev[today] || 0) + minutes
-                }));
-
+                setHistory(prev => ({...prev, [today]: (prev[today] || 0) + minutes}));
                 return gainedXP;
             };
 
@@ -103,7 +96,6 @@
             );
         };
 
-        // --- Toast System ---
         const ToastContext = createContext();
         const ToastProvider = ({ children }) => {
             const [toasts, setToasts] = useState([]);
@@ -127,17 +119,13 @@
         };
         const useToast = () => useContext(ToastContext);
 
-        // --- Componentes ---
-
         const FocusMode = () => {
             const [timeLeft, setTimeLeft] = useState(25 * 60);
             const [isActive, setIsActive] = useState(false);
             const [mode, setMode] = useState('work');
             const [soundPlaying, setSoundPlaying] = useState(null);
-            
             const { addFocusTime } = useContext(UserContext);
             const toast = useToast();
-            
             const audioRef = useRef(null);
             const alarmRef = useRef(null);
 
@@ -147,8 +135,6 @@
                     interval = setInterval(() => setTimeLeft(timeLeft - 1), 1000);
                 } else if (timeLeft === 0 && isActive) {
                     setIsActive(false);
-                    
-                    // Lógica de Conclusão
                     if (!alarmRef.current) alarmRef.current = new Audio('alarme.mp3');
                     alarmRef.current.play().catch(e => console.log(e));
                     
@@ -160,7 +146,6 @@
                         toast("Descanso finalizado!");
                         new Notification("ZenOffice", { body: "Hora de voltar ao trabalho!", icon: 'icon.png' });
                     }
-
                     if (audioRef.current) audioRef.current.pause();
                     setSoundPlaying(null);
                 }
@@ -175,7 +160,7 @@
                     if (audioRef.current) audioRef.current.pause();
                     audioRef.current = new Audio(soundFile);
                     audioRef.current.loop = true;
-                    audioRef.current.play().catch(e => toast("Clique para ativar áudio"));
+                    audioRef.current.play().catch(e => toast("Clique na tela para ativar áudio"));
                     setSoundPlaying(soundFile);
                 }
             };
@@ -193,7 +178,6 @@
                             <span className="text-7xl font-mono font-bold tracking-tighter">{formatTime(timeLeft)}</span>
                         </div>
                     </div>
-
                     <div className="flex space-x-6 items-center">
                         <button onClick={() => setTimer(mode)} className="p-4 rounded-full bg-gray-200 dark:bg-gray-800 transition-all shadow-md active:scale-95"><Icons.RotateCcw size={24} /></button>
                         <button onClick={() => setIsActive(!isActive)} className="p-6 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white shadow-xl hover:scale-110 active:scale-95 transition-all">
@@ -201,13 +185,11 @@
                         </button>
                         <div className="w-14"></div>
                     </div>
-
                     <div className="flex gap-2 p-1 bg-gray-100 dark:bg-gray-800 rounded-xl">
                         {[{id:'work',l:'Foco'}, {id:'shortBreak',l:'Curta'}, {id:'longBreak',l:'Longa'}].map(m => (
                             <button key={m.id} onClick={() => setTimer(m.id)} className={`px-5 py-2 rounded-lg text-sm font-medium transition-all ${mode === m.id ? 'bg-white dark:bg-gray-700 shadow-sm text-indigo-600 dark:text-indigo-400' : 'text-gray-500'}`}>{m.l}</button>
                         ))}
                     </div>
-
                     <div className="w-full pt-6 border-t border-gray-200 dark:border-gray-800">
                         <div className="flex justify-center gap-4">
                             {[{n:'Foco',f:'foco.mp3'},{n:'Natureza',f:'natureza.mp3'},{n:'Lo-Fi',f:'lo-fi.mp3'}].map(s => (
@@ -224,8 +206,6 @@
 
         const StatsPage = () => {
             const { xp, level, history } = useContext(UserContext);
-
-            // Gerar dados dos últimos 7 dias
             const getLast7Days = () => {
                 const days = [];
                 for (let i = 6; i >= 0; i--) {
@@ -237,15 +217,12 @@
                 }
                 return days;
             };
-
             const data = getLast7Days();
-            const maxVal = Math.max(...data.map(d => d.val), 60); // Min 60 pra escala
+            const maxVal = Math.max(...data.map(d => d.val), 60);
 
             return (
                 <div className="w-full max-w-md mx-auto animate-fadeIn pt-4 space-y-6">
                     <h2 className="text-2xl font-bold mb-4">Seu Progresso</h2>
-                    
-                    {/* XP Card */}
                     <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
                         <div className="relative z-10">
                             <div className="flex justify-between items-end mb-2">
@@ -260,8 +237,6 @@
                         </div>
                         <Icons.Award className="absolute -bottom-4 -right-4 text-white opacity-10 w-32 h-32" />
                     </div>
-
-                    {/* Chart */}
                     <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
                         <h3 className="font-bold mb-6 flex items-center gap-2 text-sm"><Icons.BarChart size={18}/> Foco Semanal (minutos)</h3>
                         <div className="flex items-end justify-between h-40 gap-2">
@@ -270,10 +245,7 @@
                                 return (
                                     <div key={i} className="flex flex-col items-center flex-1 group">
                                         <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-t-md relative h-full flex items-end overflow-hidden">
-                                            <div 
-                                                className={`w-full bg-indigo-500 hover:bg-indigo-400 transition-all rounded-t-md bar-grow`} 
-                                                style={{'--h': `${height}%`}}
-                                            ></div>
+                                            <div className={`w-full bg-indigo-500 hover:bg-indigo-400 transition-all rounded-t-md bar-grow`} style={{'--h': `${height}%`}}></div>
                                         </div>
                                         <span className="text-[10px] mt-2 text-gray-400 font-medium uppercase">{d.label}</span>
                                         {d.val > 0 && <span className="absolute -mt-6 text-[10px] bg-gray-900 text-white px-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">{d.val}m</span>}
@@ -333,6 +305,12 @@
                         </button>
                     </div>
                     
+                    {notifyPerm !== 'granted' && (
+                        <button onClick={requestPerm} className="w-full mb-4 bg-yellow-500/10 border border-yellow-500/20 text-yellow-600 dark:text-yellow-400 p-3 rounded-xl text-sm font-medium flex items-center justify-center gap-2 hover:bg-yellow-500/20 transition-all">
+                            <Icons.BellRing size={16} /> Ativar notificações no navegador
+                        </button>
+                    )}
+                    
                     <form onSubmit={addTask} className="flex flex-col gap-3 mb-6 bg-white dark:bg-gray-800 p-4 rounded-2xl border border-gray-100 dark:border-gray-700">
                         <input type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder="Nova tarefa..." className="w-full bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 p-3 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder-gray-500"/>
                         <div className="flex justify-between items-center">
@@ -341,7 +319,7 @@
                         </div>
                     </form>
 
-                    <div className="flex-1 overflow-y-auto space-y-3 custom-scrollbar pb-32">
+                    <div className="flex-1 overflow-y-auto space-y-3 pb-32">
                         {tasks.length === 0 && <div className="text-center py-10 opacity-40"><Icons.CheckCircle size={48} className="mx-auto mb-2"/><p>Lista vazia.</p></div>}
                         {tasks.map(t => (
                             <div key={t.id} className={`flex items-center p-4 rounded-xl border transition-all ${t.done ? 'opacity-50 bg-gray-50 dark:bg-gray-800/50' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'}`}>
@@ -408,7 +386,7 @@
             const [slide, setSlide] = useState('donate');
             const toast = useToast();
             return (
-                <div className="relative w-full max-w-sm h-[480px] bg-white dark:bg-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col">
+                <div className="relative w-full max-w-sm h-[480px] bg-white dark:bg-slate-800 dark:text-white rounded-3xl shadow-2xl overflow-hidden flex flex-col">
                     <div className="flex border-b border-gray-100 dark:border-gray-700">
                         <button onClick={() => setSlide('donate')} className={`flex-1 py-4 text-sm font-bold transition-colors ${slide === 'donate' ? 'text-indigo-500 border-b-2 border-indigo-500' : 'text-gray-400'}`}>APOIAR</button>
                         <button onClick={() => setSlide('about')} className={`flex-1 py-4 text-sm font-bold transition-colors ${slide === 'about' ? 'text-indigo-500 border-b-2 border-indigo-500' : 'text-gray-400'}`}>SOBRE MIM</button>
@@ -418,7 +396,7 @@
                         <div className={`absolute w-[200%] h-full flex transition-transform duration-500 ease-in-out ${slide === 'about' ? '-translate-x-1/2' : 'translate-x-0'}`}>
                             <div className="w-1/2 h-full p-6 flex flex-col items-center justify-center space-y-4">
                                 <div className="w-20 h-20 bg-gradient-to-tr from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg animate-pop"><Icons.Coffee size={40} className="text-white" /></div>
-                                <h3 className="text-2xl font-bold">Cafézinho?</h3>
+                                <h3 className="text-2xl font-bold dark:text-white">Cafézinho?</h3>
                                 <div className="bg-white p-2 rounded-xl border-2 border-dashed border-gray-300 w-40 h-40 flex items-center justify-center">
                                     <img src="qr.png" className="max-w-full max-h-full object-contain" onError={(e) => {e.target.style.display='none'; e.target.nextSibling.style.display='block'}} />
                                     <span className="hidden text-xs text-gray-400 text-center">QR Code<br/>não encontrado</span>
@@ -426,11 +404,11 @@
                                 <button onClick={() => {navigator.clipboard.writeText('schenkel.mario@hotmail.com'); toast("Chave PIX copiada!");}} className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white rounded-xl font-bold text-sm transition-all shadow-lg">Copiar Chave PIX</button>
                             </div>
                             <div className="w-1/2 h-full p-6 flex flex-col items-center justify-center space-y-5 text-center">
-                                <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-indigo-500 shadow-xl">
+                                <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-indigo-500 shadow-xl bg-gray-200 flex items-center justify-center">
                                     <img src="profile.png" className="w-full h-full object-cover" onError={(e) => {e.target.style.display='none'; e.target.nextSibling.style.display='flex'}} />
-                                    <div className="hidden w-full h-full bg-gray-700 items-center justify-center"><Icons.User size={40} /></div>
+                                    <div className="hidden w-full h-full bg-slate-700 items-center justify-center text-white"><Icons.User size={40} /></div>
                                 </div>
-                                <div><h3 className="text-xl font-bold">Mário Schenkel</h3><p className="text-indigo-500 text-sm font-medium">Criador do ZenOffice</p></div>
+                                <div><h3 className="text-xl font-bold dark:text-white">Mário Schenkel</h3><p className="text-indigo-500 text-sm font-medium">Criador do ZenOffice</p></div>
                                 <a href="https://linkedin.com/in/marioschenkel" target="_blank" className="flex items-center gap-2 px-6 py-3 bg-[#0077b5] text-white rounded-xl font-bold text-sm hover:opacity-90 transition-all shadow-lg"><Icons.Linkedin size={18} /> Conectar no LinkedIn</a>
                             </div>
                         </div>
@@ -451,7 +429,7 @@
             const toggleTheme = () => setDarkMode(!darkMode);
 
             return (
-                <div className={`min-h-screen transition-colors duration-500 font-sans overflow-hidden ${darkMode ? 'bg-slate-900 text-gray-100' : 'bg-slate-50 text-gray-900'}`}>
+                <div className={`fixed inset-0 transition-colors duration-500 font-sans ${darkMode ? 'bg-slate-900 text-gray-100' : 'bg-slate-50 text-gray-900'}`}>
                     <header className="fixed top-0 w-full p-4 flex justify-between items-center z-10 backdrop-blur-md bg-opacity-80 border-b border-gray-200 dark:border-gray-800">
                         <div className="flex items-center gap-3">
                             <img src="icon.png" className="w-9 h-9 rounded-xl shadow-md" onError={(e)=>e.target.style.display='none'} />
@@ -464,11 +442,14 @@
                         </div>
                     </header>
 
-                    <main className="pt-28 pb-32 px-6 h-screen flex flex-col items-center justify-start overflow-y-auto w-full max-w-lg mx-auto">
-                        {activeTab === 'focus' && <FocusMode />}
-                        {activeTab === 'tasks' && <TaskManager />}
-                        {activeTab === 'stats' && <StatsPage />}
-                        {activeTab === 'relax' && <RelaxZone />}
+                    {/* Novo Layout de Scroll: Main ocupa tela toda, conteúdo centralizado */}
+                    <main className="fixed top-0 left-0 w-full h-full pt-28 pb-32 overflow-y-auto">
+                        <div className="w-full max-w-lg mx-auto px-6">
+                            {activeTab === 'focus' && <FocusMode />}
+                            {activeTab === 'tasks' && <TaskManager />}
+                            {activeTab === 'stats' && <StatsPage />}
+                            {activeTab === 'relax' && <RelaxZone />}
+                        </div>
                     </main>
 
                     <div className="fixed bottom-24 right-6 z-30">
