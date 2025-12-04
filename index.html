@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ZenOffice</title>
     
-    <!-- Configurações PWA -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#4f46e5">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -13,10 +12,8 @@
     <link rel="apple-touch-icon" href="icon.png">
     <link rel="icon" type="image/png" href="icon.png">
 
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- React & Babel -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -34,7 +31,7 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        // --- Ícones SVG Simplificados (Para não depender de bibliotecas externas) ---
+        // --- Ícones (Mantidos e Adicionados novos) ---
         const Icons = {
             Moon: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>,
             Sun: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>,
@@ -44,31 +41,61 @@
             Volume2: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>,
             VolumeX: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" x2="17" y1="9" y2="15"/><line x1="17" x2="23" y1="9" y2="15"/></svg>,
             CheckCircle: ({size=24}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>,
-            Trash2: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>,
+            Trash2: () => <svg xmlns="http://www.w3.org/2000/svg" width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>,
             Plus: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
             Wind: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></svg>,
             Smile: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>,
             Brain: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/><path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"/><path d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4"/><path d="M17.599 6.5a3 3 0 0 0 .399-1.375"/><path d="M6.003 5.125A3 3 0 0 0 6.401 6.5"/><path d="M3.477 10.896a4 4 0 0 1 .585-.396"/><path d="M19.938 10.5a4 4 0 0 1 .585.396"/><path d="M6 18a4 4 0 0 1-1.907-1.063"/><path d="M19.907 16.937A4 4 0 0 1 18 18"/></svg>,
             Coffee: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>,
-            Layout: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>,
             X: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>,
-            QrCode: () => <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg>
+            Bell: ({size=18}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>,
+            BellRing: ({size=18}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/><path d="M4 2C2.8 3.7 2 5.7 2 8"/><path d="M22 8c0-2.3-.8-4.3-2-6"/></svg>,
+            Cookie: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5"/><path d="M8.5 8.5v.01"/><path d="M16 15.5v.01"/><path d="M12 12v.01"/><path d="M11 17v.01"/><path d="M7 14v.01"/></svg>
         };
 
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useRef } = React;
+
+        const MOTIVATIONAL_QUOTES = [
+            "O sucesso é a soma de pequenos esforços repetidos dia após dia.",
+            "Não conte os dias, faça os dias contarem.",
+            "A organização é a chave para a liberdade.",
+            "Respire fundo. Você está indo bem.",
+            "Produtividade não é fazer mais, é fazer o que importa.",
+            "Descanse, mas não desista.",
+            "Hoje é um ótimo dia para começar."
+        ];
 
         const ZenOffice = () => {
             const [darkMode, setDarkMode] = useState(true);
             const [activeTab, setActiveTab] = useState('focus');
             const [showDonation, setShowDonation] = useState(false);
+            const [showCookieBanner, setShowCookieBanner] = useState(false);
             const [deferredPrompt, setDeferredPrompt] = useState(null);
+            const [quote, setQuote] = useState("");
 
             useEffect(() => {
+                // Instalação PWA
                 window.addEventListener('beforeinstallprompt', (e) => {
                     e.preventDefault();
                     setDeferredPrompt(e);
                 });
+                // Cookie check
+                if (!localStorage.getItem('zenCookieConsent')) {
+                    setShowCookieBanner(true);
+                }
+                // Frase aleatória
+                setQuote(MOTIVATIONAL_QUOTES[Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length)]);
+                
+                // Pedir permissão de notificação logo de início (opcional)
+                if (Notification.permission === 'default') {
+                    // Esperar uma interação do usuário idealmente, mas podemos checar status
+                }
             }, []);
+
+            const acceptCookies = () => {
+                localStorage.setItem('zenCookieConsent', 'true');
+                setShowCookieBanner(false);
+            };
 
             const installApp = async () => {
                 if (deferredPrompt) {
@@ -87,6 +114,9 @@
                 const [isActive, setIsActive] = useState(false);
                 const [mode, setMode] = useState('work');
                 const [soundPlaying, setSoundPlaying] = useState(null);
+                
+                // Refs para os áudios
+                const audioRef = useRef(null);
 
                 useEffect(() => {
                     let interval = null;
@@ -94,10 +124,25 @@
                         interval = setInterval(() => setTimeLeft(timeLeft - 1), 1000);
                     } else if (timeLeft === 0) {
                         setIsActive(false);
-                        // Tocar som real aqui se quisesse
+                        new Notification("ZenOffice", { body: "Ciclo finalizado! Hora de mudar o foco." });
+                        if(audioRef.current) audioRef.current.pause();
+                        setSoundPlaying(null);
                     }
                     return () => clearInterval(interval);
                 }, [isActive, timeLeft]);
+
+                const toggleSound = (soundFile) => {
+                    if (soundPlaying === soundFile) {
+                        audioRef.current.pause();
+                        setSoundPlaying(null);
+                    } else {
+                        if (audioRef.current) audioRef.current.pause();
+                        audioRef.current = new Audio(soundFile);
+                        audioRef.current.loop = true;
+                        audioRef.current.play().catch(e => console.log("Interação necessária para tocar áudio"));
+                        setSoundPlaying(soundFile);
+                    }
+                };
 
                 const formatTime = (seconds) => {
                     const mins = Math.floor(seconds / 60);
@@ -117,7 +162,6 @@
                     <div className="flex flex-col items-center justify-center space-y-6 w-full max-w-md mx-auto animate-fadeIn mt-4">
                         <div className={`text-center space-y-1 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
                             <h2 className="text-3xl font-bold tracking-tight">Modo Foco</h2>
-                            <p className="opacity-70 text-sm">Gerencie sua energia.</p>
                         </div>
 
                         <div className="relative group">
@@ -148,23 +192,37 @@
                         </div>
 
                         <div className="flex space-x-2 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl">
-                            {[
-                                { id: 'work', label: 'Foco' },
-                                { id: 'shortBreak', label: 'Pausa Curta' },
-                                { id: 'longBreak', label: 'Pausa Longa' }
-                            ].map((m) => (
-                                <button
-                                    key={m.id}
-                                    onClick={() => setTimer(m.id)}
+                            {[{id:'work',l:'Foco'}, {id:'shortBreak',l:'Curta'}, {id:'longBreak',l:'Longa'}].map((m) => (
+                                <button key={m.id} onClick={() => setTimer(m.id)}
                                     className={`px-4 py-2 rounded-lg text-xs font-medium transition-colors
-                                        ${mode === m.id 
-                                            ? 'bg-indigo-500 text-white shadow-sm' 
-                                            : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}
+                                        ${mode === m.id ? 'bg-indigo-500 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}
                                     `}
                                 >
-                                    {m.label}
+                                    {m.l}
                                 </button>
                             ))}
+                        </div>
+
+                        <div className="w-full pt-4 border-t border-gray-200 dark:border-gray-700">
+                            <p className="text-center text-xs mb-3 opacity-60">Sons de Ambiente</p>
+                            <div className="flex justify-center space-x-4">
+                                {[
+                                    { name: 'Foco', file: 'foco.mp3' },
+                                    { name: 'Natureza', file: 'natureza.mp3' },
+                                    { name: 'Lo-Fi', file: 'lo-fi.mp3' }
+                                ].map((s) => (
+                                    <button key={s.name} onClick={() => toggleSound(s.file)}
+                                        className={`flex flex-col items-center space-y-1 p-2 rounded-xl transition-all w-20
+                                            ${soundPlaying === s.file 
+                                                ? 'bg-emerald-500/20 text-emerald-500 ring-1 ring-emerald-500' 
+                                                : 'bg-gray-100 dark:bg-gray-800 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'}
+                                        `}
+                                    >
+                                        {soundPlaying === s.file ? <Icons.Volume2 size={16} /> : <Icons.VolumeX size={16} />}
+                                        <span className="text-[10px]">{s.name}</span>
+                                    </button>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 );
@@ -173,22 +231,64 @@
             const TaskManager = () => {
                 const [tasks, setTasks] = useState(() => {
                     const saved = localStorage.getItem('zenTasks');
-                    return saved ? JSON.parse(saved) : [
-                        { id: 1, text: 'Verificar emails importantes', done: false },
-                        { id: 2, text: 'Beber água', done: true },
-                    ];
+                    return saved ? JSON.parse(saved) : [];
                 });
                 const [input, setInput] = useState('');
+                const [timeInput, setTimeInput] = useState('');
+
+                // Sistema de verificação de lembretes
+                useEffect(() => {
+                    const checkReminders = setInterval(() => {
+                        const now = new Date();
+                        const currentTime = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+                        
+                        tasks.forEach(task => {
+                            if (task.time === currentTime && !task.notified && !task.done) {
+                                new Notification("Lembrete ZenOffice", {
+                                    body: `Hora de: ${task.text}`,
+                                    icon: 'icon.png'
+                                });
+                                // Toca um som de notificação padrão do sistema ou um bip suave (opcional)
+                                const audio = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
+                                audio.play().catch(e=>console.log(e));
+
+                                // Marca como notificado para não repetir no mesmo minuto
+                                updateTaskStatus(task.id, { notified: true });
+                            }
+                        });
+                    }, 30000); // Checa a cada 30s
+                    return () => clearInterval(checkReminders);
+                }, [tasks]);
 
                 useEffect(() => {
                     localStorage.setItem('zenTasks', JSON.stringify(tasks));
                 }, [tasks]);
 
-                const addTask = (e) => {
+                const requestNotifyPermission = async () => {
+                    if (Notification.permission !== 'granted') {
+                        await Notification.requestPermission();
+                    }
+                };
+
+                const addTask = async (e) => {
                     e.preventDefault();
                     if (!input.trim()) return;
-                    setTasks([...tasks, { id: Date.now(), text: input, done: false }]);
+                    
+                    if (timeInput) await requestNotifyPermission();
+
+                    setTasks([...tasks, { 
+                        id: Date.now(), 
+                        text: input, 
+                        done: false, 
+                        time: timeInput, // formato "14:30"
+                        notified: false 
+                    }]);
                     setInput('');
+                    setTimeInput('');
+                };
+
+                const updateTaskStatus = (id, updates) => {
+                    setTasks(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
                 };
 
                 const toggleTask = (id) => {
@@ -200,63 +300,73 @@
                 };
 
                 return (
-                    <div className="w-full max-w-md mx-auto animate-fadeIn h-full flex flex-col pt-4">
-                        <h2 className="text-2xl font-bold mb-6">Organizador</h2>
+                    <div className="w-full max-w-md mx-auto animate-fadeIn h-full flex flex-col pt-2">
+                        <h2 className="text-2xl font-bold mb-4">Organizador</h2>
                         
-                        <form onSubmit={addTask} className="flex gap-2 mb-6">
+                        <form onSubmit={addTask} className="flex flex-col gap-2 mb-6 bg-gray-100 dark:bg-gray-800 p-3 rounded-xl">
                             <input
                                 type="text"
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 placeholder="Nova tarefa..."
-                                className={`flex-1 p-3 rounded-xl outline-none border-2 transition-all
-                                    ${darkMode 
-                                        ? 'bg-gray-800 border-gray-700 focus:border-indigo-500 text-white placeholder-gray-500' 
-                                        : 'bg-white border-gray-200 focus:border-indigo-500 text-gray-900'}
+                                className={`w-full p-2 bg-transparent outline-none border-b transition-all
+                                    ${darkMode ? 'border-gray-600 text-white placeholder-gray-500' : 'border-gray-300 text-gray-900'}
                                 `}
                             />
-                            <button 
-                                type="submit"
-                                className="p-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-colors"
-                            >
-                                <Icons.Plus />
-                            </button>
+                            <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-1 bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded-lg">
+                                    <Icons.Bell size={14} />
+                                    <input 
+                                        type="time" 
+                                        value={timeInput}
+                                        onChange={(e) => setTimeInput(e.target.value)}
+                                        className="bg-transparent text-xs outline-none"
+                                    />
+                                </div>
+                                <button 
+                                    type="submit"
+                                    className="ml-auto px-4 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm transition-colors"
+                                >
+                                    Adicionar
+                                </button>
+                            </div>
                         </form>
 
-                        <div className="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar pb-24">
+                        <div className="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar pb-24">
                             {tasks.length === 0 && (
                                 <div className="text-center py-10 opacity-40">
                                     <Icons.CheckCircle size={48} />
-                                    <p className="mt-2">Tudo limpo!</p>
+                                    <p className="mt-2 text-sm">Adicione tarefas e defina horários para ser lembrado!</p>
                                 </div>
                             )}
                             {tasks.map(task => (
                                 <div 
                                     key={task.id}
-                                    className={`group flex items-center p-4 rounded-xl border transition-all duration-300
-                                        ${darkMode 
-                                            ? 'bg-gray-800 border-gray-700' 
-                                            : 'bg-white border-gray-200'}
+                                    className={`group flex items-center p-3 rounded-xl border transition-all duration-300
+                                        ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}
                                         ${task.done ? 'opacity-50' : 'opacity-100'}
                                     `}
                                 >
                                     <button 
                                         onClick={() => toggleTask(task.id)}
-                                        className={`min-w-[1.5rem] h-6 rounded-full border-2 mr-4 flex items-center justify-center transition-colors
-                                            ${task.done 
-                                                ? 'bg-emerald-500 border-emerald-500 text-white' 
-                                                : 'border-gray-400 hover:border-indigo-500'}
+                                        className={`min-w-[1.2rem] h-5 rounded-full border-2 mr-3 flex items-center justify-center transition-colors
+                                            ${task.done ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-gray-400 hover:border-indigo-500'}
                                         `}
                                     >
-                                        {task.done && <Icons.CheckCircle size={14} />}
+                                        {task.done && <Icons.CheckCircle size={12} />}
                                     </button>
-                                    <span className={`flex-1 break-words ${task.done ? 'line-through' : ''}`}>
-                                        {task.text}
-                                    </span>
-                                    <button 
-                                        onClick={() => deleteTask(task.id)}
-                                        className="text-red-500 hover:bg-red-500/10 p-2 rounded-lg transition-all ml-2"
-                                    >
+                                    
+                                    <div className="flex-1 min-w-0">
+                                        <p className={`truncate ${task.done ? 'line-through' : ''}`}>{task.text}</p>
+                                        {task.time && (
+                                            <div className="flex items-center text-[10px] text-indigo-400 gap-1 mt-0.5">
+                                                <Icons.BellRing size={10} /> 
+                                                <span>{task.time}</span>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <button onClick={() => deleteTask(task.id)} className="text-red-500 hover:bg-red-500/10 p-2 rounded-lg ml-2">
                                         <Icons.Trash2 />
                                     </button>
                                 </div>
@@ -268,70 +378,48 @@
 
             const RelaxZone = () => {
                 const [subTab, setSubTab] = useState('breathe');
-
+                
+                // (Mantendo lógica anterior simplificada para brevidade)
                 const BreathingExercise = () => {
                     const [phase, setPhase] = useState('Inspire');
-                    
                     useEffect(() => {
                         const cycle = () => {
                             setPhase('Inspire');
-                            setTimeout(() => {
-                                setPhase('Segure');
-                                setTimeout(() => {
-                                    setPhase('Expire');
-                                }, 4000);
-                            }, 4000);
+                            setTimeout(() => { setPhase('Segure'); setTimeout(() => { setPhase('Expire'); }, 4000); }, 4000);
                         };
                         cycle();
                         const interval = setInterval(cycle, 12000);
                         return () => clearInterval(interval);
                     }, []);
-
                     return (
                         <div className="flex flex-col items-center justify-center py-8">
                             <div className="relative flex items-center justify-center w-64 h-64 mb-8">
-                                <div className={`absolute rounded-full bg-indigo-500/20 transition-all duration-[4000ms] ease-in-out
-                                    ${phase === 'Inspire' ? 'w-64 h-64' : phase === 'Segure' ? 'w-64 h-64' : 'w-24 h-24'}
-                                `}></div>
-                                <div className={`absolute rounded-full bg-indigo-500/40 transition-all duration-[4000ms] ease-in-out
-                                    ${phase === 'Inspire' ? 'w-48 h-48' : phase === 'Segure' ? 'w-48 h-48' : 'w-16 h-16'}
-                                `}></div>
-                                <div className={`absolute rounded-full bg-indigo-500/80 transition-all duration-[4000ms] ease-in-out flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-indigo-500/50
-                                    ${phase === 'Inspire' ? 'w-32 h-32' : phase === 'Segure' ? 'w-32 h-32' : 'w-10 h-10 text-[0px]'}
-                                `}>
+                                <div className={`absolute rounded-full bg-indigo-500/20 transition-all duration-[4000ms] ease-in-out ${phase === 'Inspire' ? 'w-64 h-64' : phase === 'Segure' ? 'w-64 h-64' : 'w-24 h-24'}`}></div>
+                                <div className={`absolute rounded-full bg-indigo-500/40 transition-all duration-[4000ms] ease-in-out ${phase === 'Inspire' ? 'w-48 h-48' : phase === 'Segure' ? 'w-48 h-48' : 'w-16 h-16'}`}></div>
+                                <div className={`absolute rounded-full bg-indigo-500/80 transition-all duration-[4000ms] ease-in-out flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-indigo-500/50 ${phase === 'Inspire' ? 'w-32 h-32' : phase === 'Segure' ? 'w-32 h-32' : 'w-10 h-10 text-[0px]'}`}>
                                     {phase === 'Inspire' || phase === 'Segure' ? phase : ''}
                                 </div>
                             </div>
-                            <p className="opacity-70 text-center max-w-xs text-lg font-medium">
-                                {phase === 'Inspire' && "Encha os pulmões..."}
-                                {phase === 'Segure' && "Segure o ar..."}
-                                {phase === 'Expire' && "Solte suavemente..."}
-                            </p>
+                            <p className="opacity-70 text-center font-medium">Técnica 4-4-4</p>
                         </div>
                     );
                 };
-
+                
                 const BubbleWrap = () => {
                     const [bubbles, setBubbles] = useState(Array(25).fill(false));
-                    const pop = (index) => {
-                        if (bubbles[index]) return;
-                        const newBubbles = [...bubbles];
-                        newBubbles[index] = true;
-                        setBubbles(newBubbles);
-                        if (navigator.vibrate) navigator.vibrate(50);
+                    const pop = (i) => {
+                        if(bubbles[i]) return;
+                        const n = [...bubbles]; n[i]=true; setBubbles(n);
+                        if(navigator.vibrate) navigator.vibrate(50);
                     };
                     return (
                         <div className="flex flex-col items-center">
                             <div className="grid grid-cols-5 gap-3 mb-6 p-4 bg-gray-100 dark:bg-gray-800 rounded-xl">
-                                {bubbles.map((popped, i) => (
-                                    <button key={i} onClick={() => pop(i)}
-                                        className={`w-12 h-12 rounded-full shadow-inner transition-all transform duration-100
-                                            ${popped ? 'bg-transparent border-2 border-gray-400 scale-90' : 'bg-gradient-to-br from-blue-300 to-blue-500 shadow-lg scale-100 active:scale-95'}
-                                        `}
-                                    ></button>
+                                {bubbles.map((p, i) => (
+                                    <button key={i} onClick={() => pop(i)} className={`w-12 h-12 rounded-full shadow-inner transition-all ${p ? 'bg-transparent border-2 border-gray-400 scale-90' : 'bg-gradient-to-br from-blue-300 to-blue-500 shadow-lg scale-100 active:scale-95'}`}></button>
                                 ))}
                             </div>
-                            <button onClick={() => setBubbles(Array(25).fill(false))} className="text-sm text-indigo-400 underline">Reiniciar</button>
+                            <button onClick={()=>setBubbles(Array(25).fill(false))} className="text-indigo-400 underline">Reiniciar</button>
                         </div>
                     );
                 };
@@ -339,12 +427,8 @@
                 return (
                     <div className="w-full max-w-md mx-auto animate-fadeIn flex flex-col items-center pt-4">
                         <div className="flex space-x-4 mb-8">
-                            <button onClick={() => setSubTab('breathe')} className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all ${subTab === 'breathe' ? 'bg-indigo-600 text-white' : 'bg-gray-200 dark:bg-gray-800 opacity-60'}`}>
-                                <Icons.Wind /> <span>Respirar</span>
-                            </button>
-                            <button onClick={() => setSubTab('bubble')} className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all ${subTab === 'bubble' ? 'bg-pink-600 text-white' : 'bg-gray-200 dark:bg-gray-800 opacity-60'}`}>
-                                <Icons.Smile /> <span>Relaxar</span>
-                            </button>
+                            <button onClick={() => setSubTab('breathe')} className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all ${subTab === 'breathe' ? 'bg-indigo-600 text-white' : 'bg-gray-200 dark:bg-gray-800 opacity-60'}`}><Icons.Wind /> <span>Respirar</span></button>
+                            <button onClick={() => setSubTab('bubble')} className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all ${subTab === 'bubble' ? 'bg-pink-600 text-white' : 'bg-gray-200 dark:bg-gray-800 opacity-60'}`}><Icons.Smile /> <span>Relaxar</span></button>
                         </div>
                         {subTab === 'breathe' ? <BreathingExercise /> : <BubbleWrap />}
                     </div>
@@ -353,66 +437,94 @@
 
             return (
                 <div className={`min-h-screen transition-colors duration-300 font-sans overflow-hidden ${darkMode ? 'bg-slate-900 text-gray-100' : 'bg-slate-50 text-gray-900'}`}>
+                    {/* Header */}
                     <header className="fixed top-0 w-full p-4 flex justify-between items-center z-10 backdrop-blur-md bg-opacity-80 border-b border-gray-200 dark:border-gray-800">
-                        <div className="flex items-center space-x-2">
-                            <div className="p-2 bg-indigo-600 rounded-lg text-white"><Icons.Layout /></div>
-                            <h1 className="font-bold text-xl">ZenOffice</h1>
+                        <div className="flex items-center space-x-3">
+                            <img src="icon.png" alt="Logo" className="w-8 h-8 rounded-lg shadow-lg" onError={(e)=>{e.target.style.display='none'}} />
+                            <div>
+                                <h1 className="font-bold text-xl leading-none">ZenOffice</h1>
+                            </div>
                         </div>
                         <div className="flex gap-2">
-                            {deferredPrompt && (
-                                <button onClick={installApp} className="px-3 py-1 bg-emerald-600 text-white text-xs rounded-full animate-pulse">
-                                    Instalar App
-                                </button>
-                            )}
-                            <button onClick={toggleTheme} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800">
-                                {darkMode ? <Icons.Sun /> : <Icons.Moon />}
-                            </button>
+                            {deferredPrompt && <button onClick={installApp} className="px-3 py-1 bg-emerald-600 text-white text-xs rounded-full animate-pulse">Instalar</button>}
+                            <button onClick={toggleTheme} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800">{darkMode ? <Icons.Sun /> : <Icons.Moon />}</button>
                         </div>
                     </header>
 
-                    <main className="pt-24 pb-28 px-6 h-screen flex flex-col items-center justify-start overflow-y-auto">
+                    {/* Motivational Quote */}
+                    <div className="fixed top-20 w-full text-center px-4 z-0 pointer-events-none opacity-50 text-xs uppercase tracking-widest">
+                        {quote}
+                    </div>
+
+                    <main className="pt-28 pb-28 px-6 h-screen flex flex-col items-center justify-start overflow-y-auto">
                         {activeTab === 'focus' && <FocusMode />}
                         {activeTab === 'tasks' && <TaskManager />}
                         {activeTab === 'relax' && <RelaxZone />}
                     </main>
 
-                    <div className="fixed bottom-24 w-full flex justify-center pointer-events-none z-30">
-                        <button onClick={() => setShowDonation(true)} className="pointer-events-auto bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-5 py-2 rounded-full shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all flex items-center space-x-2 text-sm font-medium">
-                            <Icons.Coffee /> <span>Me pague um café</span>
+                    {/* Floating Coffee Button (FAB) - Bottom Right */}
+                    <div className="fixed bottom-24 right-6 z-30">
+                        <button 
+                            onClick={() => setShowDonation(true)}
+                            className="group flex items-center justify-center w-12 h-12 bg-yellow-500 text-white rounded-full shadow-lg hover:w-auto hover:px-4 hover:bg-yellow-600 transition-all duration-300 overflow-hidden"
+                        >
+                            <Icons.Coffee size={20} className="min-w-[20px]" />
+                            <span className="w-0 overflow-hidden group-hover:w-auto group-hover:ml-2 whitespace-nowrap text-sm font-bold transition-all">Apoiar</span>
                         </button>
                     </div>
 
+                    {/* Cookie Consent */}
+                    {showCookieBanner && (
+                        <div className="fixed bottom-0 w-full p-4 bg-gray-900 border-t border-gray-700 z-50 animate-fadeIn">
+                            <div className="max-w-md mx-auto flex items-center justify-between text-xs text-gray-300">
+                                <div className="flex items-center gap-2">
+                                    <Icons.Cookie size={16} />
+                                    <p>Usamos armazenamento local para salvar suas tarefas.</p>
+                                </div>
+                                <button onClick={acceptCookies} className="bg-indigo-600 px-3 py-1 rounded text-white ml-2 hover:bg-indigo-500">OK</button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Bottom Nav */}
                     <nav className={`fixed bottom-0 w-full p-2 pb-6 border-t transition-colors z-20 ${darkMode ? 'bg-slate-900 border-gray-800' : 'bg-white border-gray-200'}`}>
                         <div className="flex justify-around items-center max-w-md mx-auto">
-                            {[
-                                { id: 'focus', icon: Icons.Brain, label: 'Foco' },
-                                { id: 'tasks', icon: Icons.CheckCircle, label: 'Tarefas' },
-                                { id: 'relax', icon: Icons.Wind, label: 'Zen' },
-                            ].map((tab) => (
+                            {[{id:'focus',i:Icons.Brain,l:'Foco'},{id:'tasks',i:Icons.CheckCircle,l:'Tarefas'},{id:'relax',i:Icons.Wind,l:'Zen'}].map((tab) => (
                                 <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex flex-col items-center p-2 rounded-xl w-20 transition-all duration-300 ${activeTab === tab.id ? 'text-indigo-500 -translate-y-1' : 'text-gray-400 hover:text-gray-500'}`}>
-                                    <tab.icon />
-                                    <span className={`text-xs mt-1 ${activeTab === tab.id ? 'font-bold' : 'font-normal'}`}>{tab.label}</span>
+                                    <tab.i /> <span className={`text-xs mt-1 ${activeTab === tab.id ? 'font-bold' : 'font-normal'}`}>{tab.l}</span>
                                 </button>
                             ))}
                         </div>
                     </nav>
 
+                    {/* Donation Modal */}
                     {showDonation && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
                             <div className={`relative w-full max-w-sm p-6 rounded-2xl shadow-2xl ${darkMode ? 'bg-slate-800 text-white' : 'bg-white text-gray-900'}`}>
-                                <button onClick={() => setShowDonation(false)} className="absolute top-4 right-4 text-gray-400"><Icons.X /></button>
+                                <button onClick={() => setShowDonation(false)} className="absolute top-4 right-4 text-gray-400 hover:text-red-500"><Icons.X /></button>
                                 <div className="text-center space-y-4">
-                                    <div className="w-16 h-16 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center mx-auto mb-4"><Icons.Coffee /></div>
-                                    <h3 className="text-2xl font-bold">Apoie o Projeto!</h3>
-                                    <p className="text-sm opacity-80">Se este app te ajudou a evitar o burnout hoje, considere apoiar!</p>
+                                    <div className="w-16 h-16 bg-gradient-to-tr from-yellow-400 to-orange-500 text-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg"><Icons.Coffee size={32} /></div>
+                                    <h3 className="text-2xl font-bold">Café pro Desenvolvedor? ☕</h3>
+                                    <p className="text-sm opacity-80">Ajude a manter o projeto no ar e sem anúncios!</p>
                                     
-                                    <div className="bg-white p-4 rounded-xl border-2 border-dashed border-gray-300 my-4 flex flex-col items-center justify-center">
-                                        {/* AQUI VAI A IMAGEM DO QR CODE */}
-                                        <img src="qr.png" alt="Pix QR Code" className="max-w-[150px] mx-auto" onError={(e) => {e.target.style.display='none'; e.target.nextSibling.style.display='block'}} />
-                                        <div style={{display:'none'}} className="text-center"><Icons.QrCode /><p className="text-xs text-gray-400 mt-2">Imagem qr.png não encontrada</p></div>
+                                    <div className="bg-white p-4 rounded-xl border-2 border-dashed border-gray-300 my-4 flex flex-col items-center justify-center h-48 relative overflow-hidden">
+                                        <img src="qr.png" alt="Pix QR Code" className="object-contain h-full" onError={(e) => {e.target.style.display='none'; e.target.nextSibling.style.display='flex'}} />
+                                        <div style={{display:'none'}} className="absolute inset-0 flex flex-col items-center justify-center text-gray-400">
+                                            <p className="text-xs">QR Code não carregou.</p>
+                                            <p className="text-[10px] mt-1">Copie a chave abaixo.</p>
+                                        </div>
                                     </div>
                                     
-                                    <button className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium transition-colors">Copiar Chave Pix</button>
+                                    <button 
+                                        onClick={() => {
+                                            navigator.clipboard.writeText('schenkel.mario@hotmail.com');
+                                            alert('Chave PIX copiada: schenkel.mario@hotmail.com');
+                                        }}
+                                        className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium transition-colors flex justify-center items-center gap-2"
+                                    >
+                                        <span>Copiar Chave Pix</span>
+                                    </button>
+                                    <p className="text-[10px] opacity-50 font-mono">schenkel.mario@hotmail.com</p>
                                 </div>
                             </div>
                         </div>
@@ -426,12 +538,13 @@
     </script>
     
     <script>
-        // Registro do Service Worker para funcionar Offline e instalar
+        // Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then((reg) => console.log('Service Worker registrado!', reg))
-                    .catch((err) => console.log('Falha no SW:', err));
+                navigator.serviceWorker.register('./sw.js').then(
+                    () => console.log('SW registrado com sucesso!'),
+                    err => console.log('Erro ao registrar SW:', err)
+                );
             });
         }
     </script>
