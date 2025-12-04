@@ -33,6 +33,9 @@
             50% { transform: scale(1.5); }
         }
         .breathing-active { animation: breathe 12s infinite ease-in-out; }
+        
+        /* Ajuste para garantir que o FAB não cubra conteúdo */
+        .safe-bottom { padding-bottom: 160px; }
     </style>
 </head>
 <body class="bg-slate-900 text-white overflow-hidden">
@@ -55,7 +58,8 @@
             Bell: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>,
             BarChart: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" x2="12" y1="20" y2="10"/><line x1="18" x2="18" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="16"/></svg>,
             Volume2: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>,
-            Square: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" /></svg>
+            Square: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" /></svg>,
+            Download: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
         };
 
         const { useState, useEffect, useRef, useContext, createContext } = React;
@@ -70,7 +74,44 @@
             "Foco no progresso, não na perfeição."
         ];
 
-        // --- Contexto para Dados do Usuário (XP e Histórico) ---
+        // --- CONTEXTO DE ÁUDIO GLOBAL ---
+        // Isso permite que o som toque mesmo mudando de aba
+        const SoundContext = createContext();
+        const SoundProvider = ({ children }) => {
+            const audioRef = useRef(null);
+            const [soundPlaying, setSoundPlaying] = useState(null);
+
+            const toggleSound = (soundFile) => {
+                if (soundPlaying === soundFile) {
+                    // Se clicar no mesmo, pausa
+                    if(audioRef.current) audioRef.current.pause();
+                    setSoundPlaying(null);
+                } else {
+                    // Se for novo som, troca
+                    if (audioRef.current) audioRef.current.pause();
+                    audioRef.current = new Audio(soundFile);
+                    audioRef.current.loop = true; // Loop infinito
+                    audioRef.current.play().catch(e => console.log("Erro áudio:", e));
+                    setSoundPlaying(soundFile);
+                }
+            };
+
+            const stopAudio = () => {
+                if (audioRef.current) {
+                    audioRef.current.pause();
+                    audioRef.current.currentTime = 0;
+                }
+                setSoundPlaying(null);
+            };
+
+            return (
+                <SoundContext.Provider value={{ soundPlaying, toggleSound, stopAudio }}>
+                    {children}
+                </SoundContext.Provider>
+            );
+        };
+
+        // --- Contexto para Dados do Usuário ---
         const UserContext = createContext();
         const UserProvider = ({ children }) => {
             const [xp, setXp] = useState(() => parseInt(localStorage.getItem('zenXP') || '0'));
@@ -101,18 +142,10 @@
             const [timeLeft, setTimeLeft] = useState(25 * 60);
             const [isActive, setIsActive] = useState(false);
             const [mode, setMode] = useState('work');
-            const [soundPlaying, setSoundPlaying] = useState(null);
             
             const { addFocusTime } = useContext(UserContext);
-            const audioRef = useRef(null);
+            const { soundPlaying, toggleSound, stopAudio } = useContext(SoundContext);
             const alarmRef = useRef(null);
-
-            // Cleanup ao sair da aba
-            useEffect(() => {
-                return () => {
-                    if (audioRef.current) { audioRef.current.pause(); }
-                };
-            }, []);
 
             useEffect(() => {
                 let interval = null;
@@ -126,36 +159,19 @@
                     if (mode === 'work') {
                         const earned = addFocusTime(25);
                         alert(`Foco concluído! Você ganhou +${earned} XP!`);
-                        new Notification("ZenOffice", { body: "Ciclo concluído!", icon: "icon.png" });
+                        if("Notification" in window && Notification.permission === "granted") {
+                             new Notification("ZenOffice", { body: "Ciclo concluído!", icon: "icon.png" });
+                        }
                     }
-                    if (audioRef.current) audioRef.current.pause();
-                    setSoundPlaying(null);
+                    stopAudio(); // Para o som ambiente ao acabar
                 }
                 return () => clearInterval(interval);
             }, [isActive, timeLeft]);
 
-            const toggleSound = (soundFile) => {
-                if (soundPlaying === soundFile) {
-                    if(audioRef.current) audioRef.current.pause();
-                    setSoundPlaying(null);
-                } else {
-                    if (audioRef.current) audioRef.current.pause();
-                    audioRef.current = new Audio(soundFile);
-                    audioRef.current.loop = true;
-                    audioRef.current.play().catch(e => console.log("Clique para tocar"));
-                    setSoundPlaying(soundFile);
-                }
-            };
-
-            const stopAudio = () => {
-                if (audioRef.current) audioRef.current.pause();
-                setSoundPlaying(null);
-            };
-
             const formatTime = (s) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
 
             return (
-                <div className="flex flex-col items-center justify-center space-y-8 animate-fadeIn mt-6">
+                <div className="flex flex-col items-center justify-center space-y-8 animate-fadeIn mt-6 safe-bottom">
                     <h2 className="text-3xl font-bold tracking-tight">Modo Foco</h2>
                     
                     <div className="relative">
@@ -180,10 +196,10 @@
                         ))}
                     </div>
 
-                    {/* Controles de Som */}
+                    {/* Controles de Som Global */}
                     <div className="w-full pt-6 border-t border-gray-800">
                         <p className="text-center text-xs text-gray-500 mb-3 uppercase tracking-wider">Sons de Ambiente</p>
-                        <div className="flex justify-center items-center gap-3">
+                        <div className="flex justify-center items-center gap-3 flex-wrap">
                             {[{n:'Foco',f:'foco.mp3'},{n:'Natureza',f:'natureza.mp3'},{n:'Lo-Fi',f:'lo-fi.mp3'}].map(s => (
                                 <button key={s.n} onClick={() => toggleSound(s.f)} className={`p-3 rounded-xl w-20 flex flex-col items-center gap-1 transition-all ${soundPlaying === s.f ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-400'}`}>
                                     <Icons.Volume2 size={20} /> <span className="text-[10px]">{s.n}</span>
@@ -212,7 +228,10 @@
                     const current = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
                     tasks.forEach(t => {
                         if(t.time === current && !t.notified && !t.done) {
-                            new Notification("Lembrete", { body: t.text, icon: 'icon.png' });
+                            // Tenta enviar notificação
+                            if(Notification.permission === 'granted') {
+                                new Notification("Lembrete", { body: t.text, icon: 'icon.png' });
+                            }
                             setTasks(prev => prev.map(p => p.id === t.id ? {...p, notified: true} : p));
                         }
                     });
@@ -225,12 +244,32 @@
                 if(!input) return;
                 setTasks([...tasks, {id: Date.now(), text: input, time, done: false, notified: false}]);
                 setInput(''); setTime('');
-                if(Notification.permission !== 'granted') Notification.requestPermission();
+            };
+
+            const checkPermission = () => {
+                if (!("Notification" in window)) {
+                    alert("Este navegador não suporta notificações de sistema.");
+                } else if (Notification.permission === "granted") {
+                    new Notification("Teste", { body: "Notificações estão ativadas!", icon: "icon.png" });
+                } else if (Notification.permission !== "denied") {
+                    Notification.requestPermission().then(permission => {
+                        if (permission === "granted") {
+                            new Notification("Sucesso", { body: "Agora você receberá lembretes!", icon: "icon.png" });
+                        }
+                    });
+                } else {
+                    alert("Notificações estão bloqueadas. Ative nas configurações do navegador.");
+                }
             };
 
             return (
-                <div className="w-full max-w-md mx-auto animate-fadeIn mt-6">
-                    <h2 className="text-3xl font-bold mb-6 text-center">Tarefas</h2>
+                <div className="w-full max-w-md mx-auto animate-fadeIn mt-6 safe-bottom">
+                    <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-3xl font-bold">Tarefas</h2>
+                        <button onClick={checkPermission} className="text-xs bg-gray-800 px-3 py-1 rounded-full text-indigo-400 border border-indigo-900">
+                            Testar Notificação
+                        </button>
+                    </div>
                     
                     <form onSubmit={addTask} className="bg-gray-800 p-4 rounded-2xl mb-6">
                         <input value={input} onChange={e=>setInput(e.target.value)} placeholder="Nova tarefa..." className="w-full bg-transparent border-b border-gray-600 text-white p-2 outline-none mb-3"/>
@@ -240,7 +279,7 @@
                         </div>
                     </form>
 
-                    <div className="space-y-3 pb-32">
+                    <div className="space-y-3">
                         {tasks.map(t => (
                             <div key={t.id} className={`flex items-center p-4 bg-gray-800 rounded-xl border border-gray-700 ${t.done ? 'opacity-50' : ''}`}>
                                 <button onClick={()=>setTasks(tasks.map(x=>x.id===t.id?{...x, done:!x.done}:x))} className={`w-6 h-6 rounded-full border-2 mr-3 flex items-center justify-center ${t.done ? 'bg-green-500 border-green-500' : 'border-gray-500'}`}>
@@ -289,16 +328,13 @@
                 }, [active]);
 
                 return (
-                    <div className="flex flex-col items-center justify-center py-12">
+                    <div className="flex flex-col items-center justify-center py-12 safe-bottom">
                         <div 
                             onClick={() => setActive(!active)}
                             className="cursor-pointer relative flex items-center justify-center w-64 h-64 select-none"
                         >
-                            {/* Círculo de animação */}
                             <div className={`absolute rounded-full bg-indigo-500/20 w-40 h-40 transition-transform duration-[4000ms] ease-in-out ${active && phase !== 'Expire' ? 'scale-150' : 'scale-100'}`}></div>
                             <div className={`absolute rounded-full bg-indigo-500/40 w-32 h-32 transition-transform duration-[4000ms] ease-in-out ${active && phase !== 'Expire' ? 'scale-150' : 'scale-100'}`}></div>
-                            
-                            {/* Círculo Central */}
                             <div className="absolute w-40 h-40 bg-indigo-600 rounded-full flex items-center justify-center shadow-2xl shadow-indigo-500/50 z-10">
                                 <span className="font-bold text-xl text-center px-4 animate-fadeIn">{phase}</span>
                             </div>
@@ -312,7 +348,7 @@
                 const [bubbles, setBubbles] = useState(Array(20).fill(false));
                 const pop = (i) => { if(bubbles[i]) return; playPop(); const n = [...bubbles]; n[i] = true; setBubbles(n); };
                 return (
-                    <div className="flex flex-col items-center w-full">
+                    <div className="flex flex-col items-center w-full safe-bottom">
                         <div className="grid grid-cols-4 gap-4 mb-6">
                             {bubbles.map((p, i) => (
                                 <button key={i} onClick={() => pop(i)} className={`w-16 h-16 rounded-full shadow-inner transition-all ${p ? 'bg-transparent border-2 border-dashed border-gray-600 scale-90' : 'bg-gradient-to-br from-indigo-500 to-blue-600 shadow-xl active:scale-95'}`}></button>
@@ -324,7 +360,7 @@
             };
 
             return (
-                <div className="w-full max-w-md mx-auto animate-fadeIn mt-6 flex flex-col items-center">
+                <div className="w-full max-w-md mx-auto animate-fadeIn mt-6 flex flex-col items-center safe-bottom">
                     <h2 className="text-3xl font-bold mb-8">Modo Zen</h2>
                     <div className="flex bg-gray-800 p-1 rounded-full mb-4">
                         <button onClick={() => setTab('breathe')} className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${tab === 'breathe' ? 'bg-indigo-600 text-white' : 'text-gray-400'}`}>Respirar</button>
@@ -349,9 +385,8 @@
              const max = Math.max(...data.map(d=>d.v), 60);
 
              return (
-                 <div className="w-full max-w-md mx-auto animate-fadeIn mt-6">
+                 <div className="w-full max-w-md mx-auto animate-fadeIn mt-6 safe-bottom">
                     <h2 className="text-3xl font-bold mb-6 text-center">Estatísticas</h2>
-                    
                     <div className="bg-gradient-to-r from-indigo-600 to-purple-700 rounded-2xl p-6 mb-6 shadow-lg">
                         <p className="text-indigo-200 text-xs font-bold uppercase">Nível {level}</p>
                         <p className="text-4xl font-bold mt-1">{xp} <span className="text-sm font-normal text-indigo-200">XP Total</span></p>
@@ -360,7 +395,6 @@
                         </div>
                         <p className="text-right text-[10px] mt-1 text-indigo-200">{xp%500}/500 para próximo nível</p>
                     </div>
-
                     <div className="bg-gray-800 p-6 rounded-2xl border border-gray-700">
                         <h3 className="font-bold mb-4 flex gap-2 items-center text-sm"><Icons.BarChart size={16}/> Minutos Focados (7 dias)</h3>
                         <div className="flex items-end justify-between h-32 gap-2">
@@ -383,36 +417,24 @@
             return (
                 <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
                     <div className="bg-slate-800 w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl border border-gray-700 relative h-[500px] flex flex-col">
-                        
                         <div className="flex border-b border-gray-700">
                              <button onClick={()=>setSlide('donate')} className={`flex-1 py-4 text-sm font-bold ${slide==='donate'?'text-indigo-400 border-b-2 border-indigo-400':'text-gray-500'}`}>APOIAR</button>
                              <button onClick={()=>setSlide('about')} className={`flex-1 py-4 text-sm font-bold ${slide==='about'?'text-indigo-400 border-b-2 border-indigo-400':'text-gray-500'}`}>SOBRE</button>
                         </div>
                         <button onClick={close} className="absolute top-4 right-4 text-gray-400 hover:text-white"><Icons.X /></button>
-
                         <div className="flex-1 relative">
                             <div className={`absolute w-[200%] h-full flex transition-transform duration-500 ${slide==='about'?'-translate-x-1/2':'translate-x-0'}`}>
-                                
-                                {/* Slide Doação */}
                                 <div className="w-1/2 h-full p-6 flex flex-col items-center justify-center text-center space-y-4">
-                                    <div className="w-16 h-16 bg-gradient-to-tr from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg mb-2">
-                                        <Icons.Coffee size={32} className="text-white" />
-                                    </div>
+                                    <div className="w-16 h-16 bg-gradient-to-tr from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg mb-2"><Icons.Coffee size={32} className="text-white" /></div>
                                     <h2 className="text-xl font-bold">Café pro Desenvolvedor? ☕</h2>
                                     <p className="text-sm text-gray-400">Ajude a manter o projeto no ar e sem anúncios!</p>
-                                    
                                     <div className="bg-white p-3 rounded-xl w-40 h-40 flex items-center justify-center my-2">
                                         <img src="qr.png" className="max-w-full max-h-full" onError={(e)=>{e.target.style.display='none'; e.target.nextSibling.style.display='block'}}/>
                                         <span className="text-black text-xs hidden">QR Code não encontrado</span>
                                     </div>
-
-                                    <button onClick={()=>{navigator.clipboard.writeText('schenkel.mario@hotmail.com'); alert('Chave copiada!')}} className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-bold text-sm shadow-lg shadow-indigo-500/20">
-                                        Copiar Chave Pix
-                                    </button>
+                                    <button onClick={()=>{navigator.clipboard.writeText('schenkel.mario@hotmail.com'); alert('Chave copiada!')}} className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-bold text-sm shadow-lg shadow-indigo-500/20">Copiar Chave Pix</button>
                                     <p className="text-[10px] text-gray-500 font-mono">schenkel.mario@hotmail.com</p>
                                 </div>
-
-                                {/* Slide Sobre */}
                                 <div className="w-1/2 h-full p-6 flex flex-col items-center justify-center text-center space-y-4">
                                      <div className="w-24 h-24 rounded-full border-4 border-indigo-500 overflow-hidden shadow-xl mb-2">
                                         <img src="profile.png" className="w-full h-full object-cover" onError={(e)=>{e.target.style.display='none'; e.target.parentElement.style.backgroundColor='#333'}} />
@@ -422,7 +444,6 @@
                                      <p className="text-sm text-gray-400">Focado em criar soluções que trazem paz e produtividade para o seu dia a dia.</p>
                                      <a href="https://linkedin.com/in/marioschenkel" target="_blank" className="px-6 py-2 bg-blue-700 text-white rounded-lg text-sm font-bold mt-4">LinkedIn</a>
                                 </div>
-
                             </div>
                         </div>
                     </div>
@@ -432,14 +453,29 @@
 
         const App = () => {
             const [activeTab, setActiveTab] = useState('focus');
-            const [darkMode, setDarkMode] = useState(true); // Sempre dark por padrão conforme imagem
+            const [darkMode, setDarkMode] = useState(true);
             const [showModal, setShowModal] = useState(false);
             const [quote, setQuote] = useState('');
             const [cookieConsent, setCookieConsent] = useState(() => localStorage.getItem('zenConsent'));
+            const [deferredPrompt, setDeferredPrompt] = useState(null);
 
             useEffect(() => {
                 setQuote(MOTIVATIONAL_QUOTES[Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length)]);
+                
+                // Lógica de Instalação PWA
+                window.addEventListener('beforeinstallprompt', (e) => {
+                    e.preventDefault();
+                    setDeferredPrompt(e);
+                });
             }, []);
+
+            const installApp = async () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    setDeferredPrompt(null);
+                }
+            };
 
             const acceptCookies = () => {
                 localStorage.setItem('zenConsent', 'true');
@@ -449,7 +485,6 @@
             return (
                 <div className={`h-screen w-screen flex flex-col ${darkMode ? 'bg-slate-900 text-white' : 'bg-slate-50 text-gray-900'} transition-colors duration-300`}>
                     
-                    {/* Header */}
                     <header className="px-6 pt-6 pb-2 flex justify-between items-center z-10">
                         <div className="flex items-center gap-3">
                             <img src="icon.png" className="w-10 h-10 rounded-xl shadow-lg" onError={(e)=>e.target.style.display='none'} />
@@ -458,25 +493,29 @@
                                 <p className="text-[10px] text-gray-400 tracking-widest mt-1 uppercase">{quote}</p>
                             </div>
                         </div>
-                        <button onClick={()=>setDarkMode(!darkMode)} className="p-2 bg-gray-800 rounded-full text-gray-300">
-                            {darkMode ? <Icons.Sun size={20}/> : <Icons.Moon size={20}/>}
-                        </button>
+                        <div className="flex gap-2">
+                            {deferredPrompt && (
+                                <button onClick={installApp} className="p-2 bg-emerald-600 rounded-full text-white animate-pulse">
+                                    <Icons.Download size={20} />
+                                </button>
+                            )}
+                            <button onClick={()=>setDarkMode(!darkMode)} className="p-2 bg-gray-800 rounded-full text-gray-300">
+                                {darkMode ? <Icons.Sun size={20}/> : <Icons.Moon size={20}/>}
+                            </button>
+                        </div>
                     </header>
 
-                    {/* Conteúdo Principal (Com Scroll) */}
-                    <main className="flex-1 overflow-y-auto px-6 pb-32 w-full max-w-lg mx-auto">
+                    <main className="flex-1 overflow-y-auto px-6 w-full max-w-lg mx-auto">
                         {activeTab === 'focus' && <FocusMode />}
                         {activeTab === 'tasks' && <TasksMode />}
                         {activeTab === 'zen' && <ZenMode />}
                         {activeTab === 'stats' && <StatsMode />}
                     </main>
 
-                    {/* FAB Café */}
                     <button onClick={()=>setShowModal(true)} className="fixed bottom-24 right-6 w-14 h-14 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-xl shadow-orange-500/20 z-20 hover:scale-110 transition-transform">
                         <Icons.Coffee size={24} className="text-white" />
                     </button>
 
-                    {/* Navbar Inferior */}
                     <nav className="fixed bottom-0 w-full bg-slate-900/90 backdrop-blur-md border-t border-gray-800 pb-6 pt-2 z-30">
                         <div className="flex justify-around items-center max-w-md mx-auto">
                             {[
@@ -493,12 +532,11 @@
                         </div>
                     </nav>
 
-                    {/* Modais e Overlays */}
                     {showModal && <DonationModal close={()=>setShowModal(false)} />}
                     
                     {!cookieConsent && (
                         <div className="fixed bottom-0 w-full bg-slate-800 p-4 z-50 border-t border-gray-700 flex flex-col sm:flex-row items-center justify-between gap-4 animate-fadeIn">
-                            <p className="text-xs text-gray-300 text-center sm:text-left">Utilizamos armazenamento local para salvar seu progresso e tarefas. Sem cookies de rastreamento externos.</p>
+                            <p className="text-xs text-gray-300 text-center sm:text-left">Utilizamos armazenamento local para salvar seu progresso. Sem rastreamento.</p>
                             <button onClick={acceptCookies} className="bg-indigo-600 px-6 py-2 rounded-lg text-sm font-bold w-full sm:w-auto">Aceitar</button>
                         </div>
                     )}
@@ -509,7 +547,9 @@
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(
             <UserProvider>
-                <App />
+                <SoundProvider>
+                    <App />
+                </SoundProvider>
             </UserProvider>
         );
     </script>
