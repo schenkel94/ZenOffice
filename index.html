@@ -245,11 +245,32 @@
             const [input, setInput] = useState('');
             const [time, setTime] = useState('');
             const [snooze, setSnooze] = useState(10);
-            const [showNotificationModal, setShowNotificationModal] = useState(null);
             const [draggedIndex, setDraggedIndex] = useState(null);
             const notifyAudioRef = useRef(null);
             
             useEffect(() => localStorage.setItem('zenTasks', JSON.stringify(tasks)), [tasks]);
+
+            // Escutar mensagens do service worker
+            useEffect(() => {
+                const handleMessage = (event) => {
+                    if (event.data.type === 'TASK_ACTION') {
+                        const { taskId, action } = event.data;
+                        if (action === 'complete') {
+                            setTasks(prev => prev.map(t => t.id === taskId ? {...t, done: true} : t));
+                        } else if (action === 'snooze') {
+                            const task = tasks.find(t => t.id === taskId);
+                            if (task) {
+                                const now = new Date();
+                                now.setMinutes(now.getMinutes() + task.snooze);
+                                const newTime = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+                                setTasks(prev => prev.map(t => t.id === taskId ? {...t, time: newTime, notified: false} : t));
+                            }
+                        }
+                    }
+                };
+                navigator.serviceWorker.addEventListener('message', handleMessage);
+                return () => navigator.serviceWorker.removeEventListener('message', handleMessage);
+            }, [tasks]);
 
             // Verificação de tarefas (agora a cada 10 segundos)
             useEffect(() => {
@@ -262,14 +283,17 @@
                             if (!notifyAudioRef.current) notifyAudioRef.current = new Audio('notify.mp3');
                             notifyAudioRef.current.play().catch(e => console.log("Erro som:", e));
 
-                            // Mostrar modal com ações
-                            setShowNotificationModal(t);
-
                             // Marcar como notificada para evitar repetições
                             setTasks(prev => prev.map(p => p.id === t.id ? {...p, notified: true} : p));
 
-                            // Tentar enviar notificação do sistema também
-                            if(Notification.permission === 'granted') {
+                            // Enviar notificação via service worker com actions
+                            if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                                navigator.serviceWorker.controller.postMessage({
+                                    type: 'SHOW_NOTIFICATION',
+                                    task: t
+                                });
+                            } else if (Notification.permission === 'granted') {
+                                // Fallback para notificação simples se SW não estiver disponível
                                 new Notification("Lembrete", { body: t.text, icon: 'icon.png' });
                             }
                         }
@@ -315,16 +339,6 @@
                 now.setMinutes(now.getMinutes() + minutes);
                 const newTime = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
                 setTasks(tasks.map(t => t.id === taskId ? {...t, time: newTime, notified: false} : t));
-            };
-
-            const completeTask = (taskId) => {
-                setTasks(tasks.map(t => t.id === taskId ? {...t, done: true} : t));
-                setShowNotificationModal(null);
-            };
-
-            const handleSnoozeFromModal = (task) => {
-                snoozeTask(task.id, task.snooze);
-                setShowNotificationModal(null);
             };
 
             // Drag and Drop
@@ -403,36 +417,6 @@
                         ))}
                         {tasks.length === 0 && <p className="text-center text-gray-600 mt-10">Nenhuma tarefa pendente.</p>}
                     </div>
-
-                    {/* Modal de Notificação com Ações */}
-                    {showNotificationModal && (
-                        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
-                            <div className="bg-slate-800 w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-gray-700">
-                                <div className="flex items-center justify-center mb-4">
-                                    <div className="w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center">
-                                        <Icons.Bell size={32} />
-                                    </div>
-                                </div>
-                                <h3 className="text-xl font-bold text-center mb-2">Lembrete!</h3>
-                                <p className="text-center text-gray-300 mb-6">{showNotificationModal.text}</p>
-                                <div className="flex gap-3">
-                                    <button 
-                                        onClick={() => completeTask(showNotificationModal.id)}
-                                        className="flex-1 bg-green-600 hover:bg-green-500 text-white px-4 py-3 rounded-xl font-bold transition-all"
-                                    >
-                                        Finalizar
-                                    </button>
-                                    <button 
-                                        onClick={() => handleSnoozeFromModal(showNotificationModal)}
-                                        className="flex-1 bg-blue-600 hover:bg-blue-500 text-white px-4 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2"
-                                    >
-                                        <Icons.Clock size={18} />
-                                        Adiar {showNotificationModal.snooze}min
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
                 </div>
             );
         };
