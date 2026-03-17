@@ -246,6 +246,7 @@
             const [time, setTime] = useState('');
             const [snooze, setSnooze] = useState(10);
             const [draggedIndex, setDraggedIndex] = useState(null);
+            const [showNotificationModal, setShowNotificationModal] = useState(null);
             const notifyAudioRef = useRef(null);
             
             useEffect(() => localStorage.setItem('zenTasks', JSON.stringify(tasks)), [tasks]);
@@ -274,10 +275,10 @@
 
             // Verificação de tarefas (agora a cada 10 segundos)
             useEffect(() => {
-                const interval = setInterval(() => {
+                const interval = setInterval(async () => {
                     const now = new Date();
                     const current = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-                    tasks.forEach(t => {
+                    tasks.forEach(async t => {
                         if(t.time === current && !t.notified && !t.done) {
                             // Tocar som de notificação
                             if (!notifyAudioRef.current) notifyAudioRef.current = new Audio('notify.mp3');
@@ -286,16 +287,26 @@
                             // Marcar como notificada para evitar repetições
                             setTasks(prev => prev.map(p => p.id === t.id ? {...p, notified: true} : p));
 
-                            // Enviar notificação via service worker com actions
+                            // Tentar enviar notificação via service worker com actions
+                            let notificationSent = false;
                             if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-                                navigator.serviceWorker.controller.postMessage({
-                                    type: 'SHOW_NOTIFICATION',
-                                    task: t
-                                });
-                            } else if (Notification.permission === 'granted') {
-                                // Fallback para notificação simples se SW não estiver disponível
-                                new Notification("Lembrete", { body: t.text, icon: 'icon.png' });
+                                try {
+                                    navigator.serviceWorker.controller.postMessage({
+                                        type: 'SHOW_NOTIFICATION',
+                                        task: t
+                                    });
+                                    notificationSent = true;
+                                } catch (e) {
+                                    console.log("Erro ao enviar para SW:", e);
+                                }
                             }
+                            
+                            // Se SW falhar ou actions não forem suportadas, mostrar modal
+                            // Aguardar 500ms para ver se a notificação com actions apareceu
+                            setTimeout(() => {
+                                // Mostrar modal como fallback para garantir que usuário veja
+                                setShowNotificationModal(t);
+                            }, 1000);
                         }
                     });
                 }, 10000); // 10 segundos
@@ -339,6 +350,16 @@
                 now.setMinutes(now.getMinutes() + minutes);
                 const newTime = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
                 setTasks(tasks.map(t => t.id === taskId ? {...t, time: newTime, notified: false} : t));
+            };
+
+            const completeTask = (taskId) => {
+                setTasks(tasks.map(t => t.id === taskId ? {...t, done: true} : t));
+                setShowNotificationModal(null);
+            };
+
+            const handleSnoozeFromModal = (task) => {
+                snoozeTask(task.id, task.snooze);
+                setShowNotificationModal(null);
             };
 
             // Drag and Drop
@@ -417,6 +438,36 @@
                         ))}
                         {tasks.length === 0 && <p className="text-center text-gray-600 mt-10">Nenhuma tarefa pendente.</p>}
                     </div>
+
+                    {/* Modal de Notificação - Fallback para quando actions não funcionam */}
+                    {showNotificationModal && (
+                        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
+                            <div className="bg-slate-800 w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-gray-700">
+                                <div className="flex items-center justify-center mb-4">
+                                    <div className="w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center">
+                                        <Icons.Bell size={32} />
+                                    </div>
+                                </div>
+                                <h3 className="text-xl font-bold text-center mb-2">Lembrete!</h3>
+                                <p className="text-center text-gray-300 mb-6">{showNotificationModal.text}</p>
+                                <div className="flex gap-3">
+                                    <button 
+                                        onClick={() => completeTask(showNotificationModal.id)}
+                                        className="flex-1 bg-green-600 hover:bg-green-500 text-white px-4 py-3 rounded-xl font-bold transition-all"
+                                    >
+                                        ✓ Finalizar
+                                    </button>
+                                    <button 
+                                        onClick={() => handleSnoozeFromModal(showNotificationModal)}
+                                        className="flex-1 bg-blue-600 hover:bg-blue-500 text-white px-4 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2"
+                                    >
+                                        <Icons.Clock size={18} />
+                                        Adiar {showNotificationModal.snooze}min
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             );
         };
