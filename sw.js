@@ -1,4 +1,4 @@
-const CACHE_NAME = 'zenoffice-master-v4';
+const CACHE_NAME = 'zenoffice-master-v5';
 const urlsToCache = [
   './',
   './index.html',
@@ -10,7 +10,8 @@ const urlsToCache = [
   './bubble.mp3',
   './foco.mp3',
   './natureza.mp3',
-  './lo-fi.mp3'
+  './lo-fi.mp3',
+  './notify.mp3'
 ];
 
 self.addEventListener('install', event => {
